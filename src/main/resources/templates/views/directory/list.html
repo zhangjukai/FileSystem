@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:shiro="http://www.pollix.at/thymeleaf/shiro">
+<head>
+<meta charset="UTF-8" />
+<title>列表</title>
+<link th:href="@{/webjars/bootstrap/3.2.0/css/bootstrap.min.css}" rel="stylesheet" media="screen"></link>
+<link th:href="@{/resource/plugins/FileUpload/css/uploadFile.css}" rel="stylesheet" media="screen"></link>
+<link rel="stylesheet" th:href="@{/resource/css/sys_common.css}"/>
+<script type="text/javascript" th:src="@{/webjars/jquery/2.1.1/jquery.min.js}"></script>
+<script type="text/javascript" th:src="@{/webjars/bootstrap/3.2.0/js/bootstrap.min.js}"></script>
+<script type="text/javascript" th:src="@{/resource/plugins/layer/layer.js}"></script>
+<script type="text/javascript" th:src="@{/resource/js/sys_common.js}"></script>
+<script type="text/javascript" th:src="@{/resource/logic-js/directory.js}"></script>
+<style type="text/css">
+th{text-align: center;}
+tbody{color: #666;}
+html { overflow-x: hidden; overflow-y: auto; }
+</style>
+</head>
+<body>
+<div class="container-fluid" style="padding: 30px;">
+<form id="searchForm" action="list" method="post" class="form-inline" >
+<div class="row" style="margin-bottom: 10px;">
+	<div class="col-md-12">
+		<div class="col-md-3" >
+			<label>当前目录：</label>
+			<input type="text" class="form-control lg-width input_no_border" readonly="readonly" name="curPath" disabled="disabled" placeholder="输入关键字" value="/" style="width: 230px;"/>
+			<input type="hidden" name="parentId" th:value="${parentId}"/>
+		</div>
+		
+		<!-- <a class="btn btn-primary" href="javascript:void(0)" onclick="addDir()"><span class="glyphicon glyphicon-credit-card"></span>&nbsp;创建目录</a>
+		<a class="btn btn-success" href="javascript:void(0)" onclick="addDir()" id="upFile"><span class="glyphicon glyphicon-floppy-open"></span>&nbsp;上传文件</a>
+		<a class="btn btn-default" href="javascript:void(0)" onclick="history.go(-1)" id="back"><span class="glyphicon glyphicon-backward"></span>&nbsp;上级目录</a> -->
+		<div class="col-md-6" >
+			<div style="float: left;">
+				<a class="btn btn-primary" href="javascript:void(0)" onclick="addDir()"><span class="glyphicon glyphicon-credit-card"></span>&nbsp;创建目录</a>
+			</div>
+			<div style="margin-bottom: 10px;cursor: pointer;width: 90px;float: left;margin-left: 10px" id="upFile">
+				<button type="button" class="btn btn-success" style="position: absolute;" ><span class="glyphicon glyphicon-floppy-open"></span>&nbsp;上传文件</button>
+				<input type="file" value="选择文件"  multiple='multiple' class="btn btn-github btn-success fileIput" id="uploadFiles" style="cursor: pointer;"/><br/>
+			</div>
+			<div style="float: left;margin-left: 20px;" id="back"> 
+				<a class="btn btn-default" href="javascript:void(0)" onclick="history.go(-1)" id="back"><span class="glyphicon glyphicon-backward"></span>&nbsp;上级目录</a>
+			</div>
+		</div>
+	</div>
+</div>
+<div class="row">
+<table class="table text-center table-hover ">
+	<thead>
+        <tr>
+		<th style="text-align: left;">名称</th>
+		<th>大小</th>
+		<th>类型</th>
+		<th>创建人</th>
+		<th>创建时间</th>
+      	<th>操作</th>
+        </tr>
+    </thead>
+    <tbody id="tb">
+    	
+    </tbody> 
+</table>
+</div>
+</form>
+</div>
+</body>
+</html>
