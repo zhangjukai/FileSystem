@@ -136,8 +136,8 @@ public class SysFileController extends BaseController{
 					String suffix = sysFile.getName().substring(sysFile.getName().lastIndexOf("."));
 					String filePath = FileUtil.uploudFile(fileProperties.getLocalpath()+fileProperties.getRootpath()+dir.getCurPath(), suffix, request);
 					sysFile.setPath(dir.getCurPath()+filePath.substring(filePath.lastIndexOf("/")+1,filePath.length()));
-					if(!"word,excel,pdf".contains(sysFile.getType())){
-						sysFile.setPreviewPath(sysFile.getPath());
+					if(!"word,excel,ppt".contains(sysFile.getType())){
+						sysFile.setPreviewPath(fileProperties.getRootpath()+sysFile.getPath());
 					}					
 					sysFile.setCreateUserName(user.getUserName());
 					sysFile.setCreateTime(DateTimeUtil.getNowDateStr(DateTimeUtil.yyyy_MM_dd_HH_mm_ss));
@@ -148,7 +148,7 @@ public class SysFileController extends BaseController{
 					body.put("state", 1);
 					
 					//启动一个线程转换数据
-					if("word,excel,pdf".contains(sysFile.getType())){
+					if("word,excel,ppt".contains(sysFile.getType())){
 						Office2PDFThread office2pdfThread = new Office2PDFThread(fileProperties, sysFile, sysFileService);
 						Thread thread = new Thread(office2pdfThread);  
 						thread.start(); 
