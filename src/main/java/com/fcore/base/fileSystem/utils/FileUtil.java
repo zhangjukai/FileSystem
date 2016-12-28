@@ -1,24 +1,42 @@
 package com.fcore.base.fileSystem.utils;
 
 
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.geom.AffineTransform;
+import java.awt.image.BufferedImage;
+import java.awt.image.ColorModel;
+import java.awt.image.WritableRaster;
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;
+import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.UUID;
 
+import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.lang.StringUtils;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.rendering.PDFRenderer;
 
 import com.aspose.cells.Workbook;
 import com.aspose.slides.Presentation;
 import com.aspose.words.Document;
 import com.aspose.words.License;
 import com.aspose.words.SaveFormat;
+import com.lowagie.text.Element;
+import com.lowagie.text.Font;
+import com.lowagie.text.PageSize;
+import com.lowagie.text.Paragraph;
+import com.lowagie.text.pdf.BaseFont;
+import com.lowagie.text.pdf.PdfWriter;
 
 public class FileUtil {
 
@@ -92,28 +110,24 @@ public class FileUtil {
 	}
 
 	public static String getFileType(String fileType) {
-		String str = "no type";
+		String str = "";
 		if(StringUtils.isNotEmpty(fileType)){
 			if(fileType.contains("word")){
 				str = "word";
-			}
-			if(fileType.contains("video")){
-				str = "video";
-			}
-			if(fileType.contains("image")){
+			}else if(fileType.contains("image")){
 				str = "image";
-			}
-			if(fileType.contains("excel") || fileType.contains("sheet")){
+			}else if(fileType.contains("excel") || fileType.contains("sheet")){
 				str = "excel";
-			}
-			if(fileType.contains("pdf")){
+			}else if(fileType.contains("pdf")){
 				str = "pdf";
-			}
-			if(fileType.contains("ppt")){
+			}else if(fileType.contains("ppt") || fileType.contains("powerpoint")){
 				str = "ppt";
-			}
-			if(fileType.contains("text")){
+			}else if(fileType.contains("text")){
 				str = "txt";
+			}else if(fileType.contains("mp4")){
+				str = "mp4";
+			}else if(fileType.contains("mp3")){
+				str = "mp3";
 			}
 		}
 		return str;
@@ -174,7 +188,7 @@ public class FileUtil {
 		return result;
 	}
 	
-	private boolean getCellsLicense(){
+	private static boolean getCellsLicense(){
 		boolean result = false;
 		try {
 			ClassLoader loader = Thread.currentThread().getContextClassLoader();
@@ -187,7 +201,7 @@ public class FileUtil {
 		}
 		return result;
 	}
-	private boolean getSlidesLicense(){
+	private static boolean getSlidesLicense(){
 		boolean result = false;
 		try {
 			ClassLoader loader = Thread.currentThread().getContextClassLoader();
@@ -201,8 +215,13 @@ public class FileUtil {
 		return result;
 	}
 	
+	/**
+	 * convert ppt to pdf
+	 * @param originalPath
+	 * @param dirPath
+	 */
 	public static void slides2pdf(String originalPath,String dirPath){
-		if (!getWordLicense()) {
+		if (!getSlidesLicense()) {
 			return;
 		}
 		try {
@@ -223,6 +242,11 @@ public class FileUtil {
 		}
 	}
 	
+	/**
+	 * convert word to pdf
+	 * @param originalPath
+	 * @param dirPath
+	 */
 	public static void word2pdf(String originalPath,String dirPath){
 		if (!getWordLicense()) {
 			return;
@@ -247,8 +271,13 @@ public class FileUtil {
 		}
 	}
 	
+	/**
+	 * convert cells to pdf
+	 * @param originalPath
+	 * @param dirPath
+	 */
 	public static void cells2pdf(String originalPath,String dirPath){
-		if (!getWordLicense()) {
+		if (!getCellsLicense()) {
 			return;
 		}
 		try {
@@ -270,8 +299,104 @@ public class FileUtil {
 		}
 	}
 	
+	/**
+	 * convert txt file to pdf 
+	 * @param originalPath
+	 * @param dirPath
+	 */
+	public static void txt2pdf(String originalPath,String dirPath){
+		com.lowagie.text.Document document = null;
+		BufferedReader read = null;
+		long old = System.currentTimeMillis();
+		try {
+			document = new com.lowagie.text.Document(PageSize.A4, 80, 80, 60, 30);
+			PdfWriter.getInstance(document, new FileOutputStream(dirPath));
+			document.open();
+			BaseFont bfChinese = BaseFont.createFont(ReadCreatePdf.class.getResource("/") + "/simsun.ttc,1",
+					BaseFont.IDENTITY_H, BaseFont.EMBEDDED);
+			Font FontChinese = new Font(bfChinese, 18, Font.NORMAL);
+			
+			FileInputStream fstream = new FileInputStream(originalPath);
+			DataInputStream in = new DataInputStream(fstream);
+			read = new BufferedReader(new InputStreamReader(in, "gb2312"));
+			String line = null;
+			while ((line = read.readLine()) != null) {
+				Paragraph t = new Paragraph(line, FontChinese);
+				t.setAlignment(Element.ALIGN_LEFT);
+				t.setLeading(20.0f);
+				document.add(t);
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				read.close();
+				document.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		long now = System.currentTimeMillis();
+		System.out.println("共耗时：" + ((now - old) / 1000.0) + "秒\n\n" + "文件保存在:" + dirPath);
+	}
 	
+	/**
+	 * PDF to Image(png)
+	 * @param pdfPath
+	 * @param imagePath
+	 */
+	public static void pdf2png(String pdfPath,String imagePath){
+		long old = System.currentTimeMillis();
+		// 将pdf装图片 并且自定义图片得格式大小
+		File file = new File(pdfPath);
+		try {
+			PDDocument doc = PDDocument.load(file);
+			PDFRenderer renderer = new PDFRenderer(doc);
+			int pageCount = doc.getNumberOfPages();
+			for (int i = 0; i < pageCount; i++) {
+				BufferedImage image = renderer.renderImageWithDPI(i, 250); // Windows
+				//BufferedImage srcImage = resize(image, 240, 240);// 产生缩略图
+				ImageIO.write(image, "PNG", new File(imagePath+i+".png"));
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		long now = System.currentTimeMillis();
+		System.out.println("共耗时：" + ((now - old) / 1000.0) + "秒\n\n" + "文件保存在:" + imagePath);
+	}
 	
-	
+	/**
+	 * 产生缩略图
+	 * @param source
+	 * @param targetW
+	 * @param targetH
+	 * @return
+	 */
+	public static BufferedImage resize(BufferedImage source, int targetW, int targetH) {
+		int type = source.getType();
+		BufferedImage target = null;
+		double sx = (double) targetW / source.getWidth();
+		double sy = (double) targetH / source.getHeight();
+		if (sx > sy) {
+			sx = sy;
+			targetW = (int) (sx * source.getWidth());
+		} else {
+			sy = sx;
+			targetH = (int) (sy * source.getHeight());
+		}
+		if (type == BufferedImage.TYPE_CUSTOM) {
+			ColorModel cm = source.getColorModel();
+			WritableRaster raster = cm.createCompatibleWritableRaster(targetW, targetH);
+			boolean alphaPremultiplied = cm.isAlphaPremultiplied();
+			target = new BufferedImage(cm, raster, alphaPremultiplied, null);
+		} else {
+			target = new BufferedImage(targetW, targetH, type);
+		}
+		Graphics2D g = target.createGraphics();
+		g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+		g.drawRenderedImage(source, AffineTransform.getScaleInstance(sx, sy));
+		g.dispose();
+		return target;
+	}
 	
 }

@@ -47,6 +47,8 @@ public class Office2PDFThread implements Runnable{
 			FileUtil.slides2pdf(officePath, pdfPath);
 		}else if("excel".equals(sysFile.getType())){
 			FileUtil.cells2pdf(officePath, pdfPath);
+		}else if ("txt".equals(sysFile.getType())) {
+			FileUtil.txt2pdf(officePath, pdfPath);
 		}
 		sysFile.setPreviewPath(previewPath);
 		sysFileService.update(sysFile);

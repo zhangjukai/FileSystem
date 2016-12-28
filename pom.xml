@@ -7,7 +7,6 @@
   <version>0.0.1-SNAPSHOT</version>
   <name>FileSystem Maven Webapp</name>
   <url>http://maven.apache.org</url>
-
    <parent>
        <groupId>org.springframework.boot</groupId>
        <artifactId>spring-boot-starter-parent</artifactId>
@@ -39,7 +38,6 @@
          <groupId>org.springframework.boot</groupId>
          <artifactId>spring-boot-starter-thymeleaf</artifactId>
      </dependency>
-
 	<!-- mysql连接 -->
 	<dependency>
 		<groupId>mysql</groupId>
@@ -80,13 +78,17 @@
     <dependency>
 		<groupId>org.apache.httpcomponents</groupId>
 		<artifactId>httpclient</artifactId>
-		<version>4.5.1</version>
 	</dependency>
-    <dependency>
-		<groupId>fcoreCodeGenerate</groupId>
-		<artifactId>fcore.code.generate</artifactId>
-		<version>0.0.1-SNAPSHOT</version>
-	</dependency> 
+	<dependency>
+	    <groupId>com.lowagie</groupId>
+	    <artifactId>itext</artifactId>
+	    <version>2.1.7</version>
+	</dependency>
+	<dependency>
+	    <groupId>org.apache.pdfbox</groupId>
+	    <artifactId>pdfbox</artifactId>
+	    <version>2.0.3</version>
+	</dependency>
   </dependencies>
   <build>
     <finalName>FileSystem</finalName>

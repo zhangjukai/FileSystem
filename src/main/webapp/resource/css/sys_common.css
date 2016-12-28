@@ -18,7 +18,7 @@
 	padding-left: 15px;
 	padding-bottom: 15px;
 }
-td {
+.td-center-all {
 	text-align: center; /*设置水平居中*/
 	vertical-align: middle; /*设置垂直居中*/
 }

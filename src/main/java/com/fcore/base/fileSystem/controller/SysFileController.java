@@ -131,28 +131,33 @@ public class SysFileController extends BaseController{
 		Map<String, Object> resultMap = MapResult.invoke(new Invoker() {
 			@Override
 			public void writeBody(Map<String, Object> body) throws Exception {
-				Directory dir = directoryService.getById(sysFile.getDirId());
-				if(dir!=null){
-					String suffix = sysFile.getName().substring(sysFile.getName().lastIndexOf("."));
-					String filePath = FileUtil.uploudFile(fileProperties.getLocalpath()+fileProperties.getRootpath()+dir.getCurPath(), suffix, request);
-					sysFile.setPath(dir.getCurPath()+filePath.substring(filePath.lastIndexOf("/")+1,filePath.length()));
-					if(!"word,excel,ppt".contains(sysFile.getType())){
-						sysFile.setPreviewPath(fileProperties.getRootpath()+sysFile.getPath());
-					}					
-					sysFile.setCreateUserName(user.getUserName());
-					sysFile.setCreateTime(DateTimeUtil.getNowDateStr(DateTimeUtil.yyyy_MM_dd_HH_mm_ss));
-					sysFile.setType(FileUtil.getFileType(sysFile.getType()));
-					sysFile.setIsDelete(0);
-					sysFile.setSuffix(suffix);
-					sysFileService.add(sysFile);
-					body.put("state", 1);
-					
-					//启动一个线程转换数据
-					if("word,excel,ppt".contains(sysFile.getType())){
-						Office2PDFThread office2pdfThread = new Office2PDFThread(fileProperties, sysFile, sysFileService);
-						Thread thread = new Thread(office2pdfThread);  
-						thread.start(); 
-					} 
+				String fileType = FileUtil.getFileType(sysFile.getType());
+				if(StringUtils.isNotEmpty(fileType)){
+					Directory dir = directoryService.getById(sysFile.getDirId());
+					if(dir!=null){
+						String suffix = sysFile.getName().substring(sysFile.getName().lastIndexOf("."));
+						String filePath = FileUtil.uploudFile(fileProperties.getLocalpath()+fileProperties.getRootpath()+dir.getCurPath(), suffix, request);
+						sysFile.setPath(dir.getCurPath()+filePath.substring(filePath.lastIndexOf("/")+1,filePath.length()));
+						if(!"word,excel,ppt,txt".contains(sysFile.getType())){
+							sysFile.setPreviewPath(fileProperties.getRootpath()+sysFile.getPath());
+						}					
+						sysFile.setCreateUserName(user.getUserName());
+						sysFile.setCreateTime(DateTimeUtil.getNowDateStr(DateTimeUtil.yyyy_MM_dd_HH_mm_ss));
+						sysFile.setType(FileUtil.getFileType(sysFile.getType()));
+						sysFile.setIsDelete(0);
+						sysFile.setSuffix(suffix);
+						sysFileService.add(sysFile);
+						body.put("state", 1);
+						
+						//启动一个线程转换数据
+						if("word,excel,ppt,txt".contains(sysFile.getType())){
+							Office2PDFThread office2pdfThread = new Office2PDFThread(fileProperties, sysFile, sysFileService);
+							Thread thread = new Thread(office2pdfThread);  
+							thread.start(); 
+						} 
+					}	
+				}else{
+					body.put("state", -100);//文件格式不正确
 				}
 			}
 		});
@@ -165,11 +170,11 @@ public class SysFileController extends BaseController{
 		try {
 			SysFile sysFile = sysFileService.getById(id);
 			if(sysFile!=null){
-				File file = new File(fileProperties.getLocalpath()+sysFile.getPath());
+				File file = new File(fileProperties.getLocalpath()+fileProperties.getRootpath()+sysFile.getPath());
 				// 取得文件名。
 				String filename = sysFile.getName();
 				// 以流的形式下载文件。
-				InputStream fis = new BufferedInputStream(new FileInputStream(fileProperties.getLocalpath()+sysFile.getPath()));
+				InputStream fis = new BufferedInputStream(new FileInputStream(file));
 				byte[] buffer = new byte[fis.available()];
 				fis.read(buffer);
 				fis.close();
@@ -194,7 +199,15 @@ public class SysFileController extends BaseController{
 		SysFile file = sysFileService.getById(id);
 		String url = "/html/pdf.html?file="+file.getPreviewPath();
 		try {
-			url = "/html/pdf.html?file="+URLEncoder.encode(file.getPreviewPath(),"UTF-8");
+			if("word,excel,ppt,pdf,txt".contains(file.getType())){
+				url = "/html/pdf.html?file="+URLEncoder.encode(file.getPreviewPath(),"UTF-8");
+			}else if("image".equals(file.getType())){
+				url = "/html/image.html?file="+URLEncoder.encode(file.getPreviewPath(),"UTF-8");
+			}else if("video".equals(file.getType())){
+				url = "/html/video.html?file="+URLEncoder.encode(file.getPreviewPath(),"UTF-8");
+			}else if("txt".equals(file.getType())){
+				url = "/html/txt.html?file="+URLEncoder.encode(file.getPreviewPath(),"UTF-8");
+			}
 		} catch (UnsupportedEncodingException e) {
 			e.printStackTrace();
 		} 
