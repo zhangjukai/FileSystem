@@ -2,6 +2,7 @@ $(document).ready(function() {
 	$("#saveObjForm").validationEngine() 
 })
 function saveDir(parentIndex){
+	alert("aaa")
 	var index = layer.load(3, {shade: [0.5,'#B3B3B3']});
 	if(!jQuery('#saveObjForm').validationEngine('validate')){
 		layer.close(index);
